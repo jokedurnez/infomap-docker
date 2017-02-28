@@ -1,30 +1,17 @@
-FROM poldracklab/neuroimaging-core:freesurfer-0.0.2
+FROM nipype/nipype:latest
 
-WORKDIR /root
+## Install the validator
+RUN apt-get update && \
+    apt-get install -y curl
 
-COPY docker/files/run_* /usr/bin/
-RUN chmod +x /usr/bin/run_*
+RUN mkdir -p /opt/infomap && \
+    git clone https://github.com/mapequation/infomap.git
 
-# Install miniconda
-RUN curl -sSLO https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh && \
-    /bin/bash Miniconda2-latest-Linux-x86_64.sh -b -p /usr/local/miniconda && \
-    rm Miniconda2-latest-Linux-x86_64.sh
-ENV PATH=/usr/local/miniconda/bin:$PATH \
-    PYTHONPATH=/usr/local/miniconda/lib/python2.7/site-packages \
-    PYTHONNOUSERSITE=1
+WORKDIR /opt/infomap && \
+    make
 
-# Create conda environment
-RUN conda config --add channels conda-forge && \
-    conda install -y numpy>=1.12.0 scipy matplotlib && \
-    python -c "from matplotlib import font_manager"
+WORKDIR /opt/infomap/examples/python && \
+    make
 
-# Install INFOMAP
-
-WORKDIR /root/src/mriqc
-COPY . /root/src/mriqc/
-RUN pip install -r requirements.txt && \
-    pip install -e .[all]
-
-WORKDIR /scratch
-ENTRYPOINT ["/usr/bin/run_mriqc"]
-CMD ["--help"]
+RUN pip install networkx
+RUN pip install nilearn

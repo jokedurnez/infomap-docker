@@ -4,7 +4,7 @@ FROM nipype/nipype:latest
 RUN apt-get update && \
     apt-get install -y curl
 
-RUN mkdir -p /opt/infomap && \
+WORKDIR /opt && \
     git clone https://github.com/mapequation/infomap.git
 
 WORKDIR /opt/infomap && \
